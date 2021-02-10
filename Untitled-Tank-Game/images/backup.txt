@@ -1,0 +1,1457 @@
+#include <SFML/Graphics.hpp>
+#include <stdio.h>
+
+#include "player.h"
+#include "entity.h"
+#include "projectile.h"
+#include "enemy.h"
+#include "textDisplay.h"
+#include "pickUp.h"
+#include "wall.h"
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+
+int greaterRandom1(int max)
+{
+    int randomNumber = rand();
+    float random = (randomNumber % max)+1;
+    int myRandom = random;
+    return myRandom;
+}
+
+
+int main()
+{
+    ///variables
+    srand(time(NULL));
+    sf::Clock clock;
+    sf::Clock clock2;
+    sf::Clock clock3;
+    int counter = 0;
+    int counter2 = 0;
+    int counter3 = 0;
+
+
+    sf::RenderWindow window(sf::VideoMode(1980, 1080), "SFML works!",sf::Style::Fullscreen);
+    window.setFramerateLimit(60);
+
+
+    ///View
+    sf::View view1(sf::FloatRect(200,200,300,200));
+    view1.setSize(sf::Vector2f(window.getSize().x,window.getSize().y));
+    view1.setCenter(sf::Vector2f(view1.getSize().x/2,view1.getSize().y/2));
+    window.setView(view1);
+
+
+    ///Load a sprite player
+    sf::Texture texturePlayer;
+    if(!texturePlayer.loadFromFile("images/tank.png"))
+    {
+        printf("Error imaages/tank.png");
+        return 0;
+    }
+
+    ///enemy texture
+    sf::Texture textureEnemy;
+    if(!textureEnemy.loadFromFile("images/enemy.png"))
+    {
+        printf("Error imaages/tank.png");
+        return 0;
+    }
+
+    ///pick ups textures///
+    sf::Texture textureCoin;
+    if(!textureCoin.loadFromFile("images/coin.png"))
+    {
+        printf("Error imaages/coin.png");
+        return 0;
+    }
+
+    ///powerup
+    sf::Texture texturePowerup;
+    if(!texturePowerup.loadFromFile("images/powerup.png"))
+    {
+        printf("Error imaages/powerup.png");
+        return 0;
+    }
+
+    ///Fire projectile texture
+    sf::Texture textureFire;
+    if(!textureFire.loadFromFile("images/fire.png"))
+    {
+        printf("Error imaages/fire.png");
+        return 0;
+    }
+
+    ///Texture blood
+    sf::Texture textureBlood;
+    if(!textureBlood.loadFromFile("images/blood.png"))
+    {
+        printf("Error imaages/fire.png");
+        return 0;
+    }
+
+
+    ///Obstacle texture
+    sf::Texture textureObstacle;
+    if(!textureObstacle.loadFromFile("images/map.png"))
+    {
+        printf("Error imaages/coin.png");
+        return 0;
+    }
+
+
+
+
+    ///sounds for shooting fire collision Musics etc etc
+    sf::Music music;
+    if(!music.openFromFile("sounds/music.ogg"))
+    {
+        cout<<"Error music.ogg\n";
+        return 0;
+    }
+    //music.play();
+    //music.setLoop(true);
+
+    sf::SoundBuffer bufferShot;
+    if(!bufferShot.loadFromFile("sounds/shot.ogg"))
+    {
+        cout<<"Sound error shot.ogg\n";
+        return 0;
+    }
+    sf::Sound soundShot;
+    soundShot.setBuffer(bufferShot);
+
+    sf::SoundBuffer bufferCollision;
+    if(!bufferCollision.loadFromFile("sounds/collision.ogg"))
+    {
+        cout<<"Sound error collision.ogg\n";
+        return 0;
+    }
+    sf::Sound soundCollision;
+    soundCollision.setBuffer(bufferCollision);
+
+    sf::SoundBuffer bufferPlayerDamaged;
+    if(!bufferPlayerDamaged.loadFromFile("sounds/playerhit.ogg"))
+    {
+        cout<<"Sound error playerhit.ogg\n";
+        return 0;
+    }
+    sf::Sound soundPlayerDamaged;
+    soundPlayerDamaged.setBuffer(bufferPlayerDamaged);
+
+    sf::SoundBuffer bufferCoin;
+    if(!bufferCoin.loadFromFile("sounds/coinpickup.wav"))
+    {
+        cout<<"Sound error coinpickup.wav\n";
+        return 0;
+    }
+    sf::Sound soundCoin;
+    soundCoin.setBuffer(bufferCoin);
+
+
+
+    ///Text vector array////////////////////////////////////////////////////////////
+    vector<textDisplay>::const_iterator iter8;
+    vector<textDisplay> textArray;
+    ///font
+    sf::Font font;
+    if(!font.loadFromFile("fonts/victor-pixel.ttf"))
+    {
+        cout<<"FONT ERROR: \n";
+        return 0;
+    }
+
+
+    ///class object//////////////////////////////////////////////////////
+    class player Player1;
+    Player1.rect.setPosition(100,50);
+    Player1.sprite.setTexture(texturePlayer);
+
+
+
+    ///projectile vector array///////////////////////////////////////////////////////
+    vector<projectile>::const_iterator iter;
+    vector<projectile>projectileArray;
+    ///projectile object
+    class projectile projectile1;
+    projectile1.sprite.setTexture(textureFire);
+
+
+
+    ///enemy vector array//////////////////////////////////////////////////
+    vector<enemy>::const_iterator iter4;
+    vector<enemy> enemyArray;
+    ///Enemy object
+    class enemy enemy1;
+    enemy1.sprite.setTexture(textureEnemy);
+    enemy1.text.setFont(font);
+    enemy1.text.setCharacterSize(17);
+    enemy1.text.setColor(sf::Color::Red);
+
+
+
+    ///Blood vector array//////////////////////////////////////////////////
+    vector<enemy>::const_iterator iter20;
+    vector<enemy> bloodArray;
+    ///Blood object///////////
+    class enemy blood1;
+    blood1.isBlood = true;
+    blood1.sprite.setTexture(textureBlood);
+    blood1.sprite.setTextureRect(sf::IntRect(0,0,40,40));
+
+
+
+
+    ///Points showing/////////////////////////////////////////
+    sf::Text text("Points: ",font,25);
+    text.setFillColor(sf::Color::Yellow);
+    text.setPosition(0,0);
+
+    ///Player HP text
+    sf::Text textHp("Points: ",font,25);
+    textHp.setFillColor(sf::Color::Green);
+    textHp.setPosition(0,0);
+
+
+
+    ///Text Display object//////////////////////////////////////////////
+    class textDisplay textDisplay1;
+    textDisplay1.text.setFont(font);
+
+
+
+    ///Wall vector array//////////////////////////////////
+    vector<wall>::const_iterator iter15;
+    vector<wall> wallArray;
+    class wall wall1;
+
+
+    ///PickUp Array/////////////////////////////////////////////////////
+    vector<pickUp>::const_iterator iter11;
+    vector<pickUp> pickupArray;
+    ///pickup class object coins
+    class pickUp pickup1;
+    pickup1.isCoin = true;
+    pickup1.sprite.setTexture(textureCoin);
+    pickup1.text.setFont(font);
+    pickup1.text.setCharacterSize(18);
+    pickup1.text.setColor(sf::Color::Green);
+    pickup1.rect.setPosition(500,500);
+    pickupArray.push_back(pickup1);
+
+    pickup1.rect.setPosition(700,700);
+    pickupArray.push_back(pickup1);
+
+
+
+
+
+
+    ///Custom Room////////////////////////////////////////////////////////////////////////////////////////////////
+    int roomSize = 10;
+    int verticalDoorLocationLeft = 0;
+    int verticalDoorLocationRight = 0;
+    int horizontalDoorLocationUp = 0;
+    int horizontalDoorLocationDown = 0;
+    int roomStartX = 0;
+    int roomStartY = 0;
+
+
+
+
+
+    ///Custom Room 1
+    roomSize = 5;
+    verticalDoorLocationRight = 3;
+    verticalDoorLocationLeft = 100;
+    horizontalDoorLocationUp = 100;
+    horizontalDoorLocationDown = 100;
+    roomStartX = 0;
+    roomStartY = 0;
+
+
+    ///Destructable blocks and enemy in room 1
+    counter = 0;
+    while(counter < roomSize -1)
+    {
+        counter2 = 0;
+        while(counter2 < roomSize -1)
+        {
+            int tempRandom = greaterRandom1(10);
+            if(tempRandom == 1)
+            {
+                wall1.destructable = true; ///can destroyed
+                wall1.rect.setFillColor(sf::Color::Yellow);
+
+                wall1.sprite.setTexture(textureObstacle);
+                wall1.sprite.setTextureRect(sf::IntRect(80,0,40,40));
+
+                wall1.rect.setPosition((counter * 40)+40 + roomStartX,(counter2 * 40)+40 + roomStartY);
+                wallArray.push_back(wall1);
+            }
+            if(tempRandom == 2)
+            {
+                enemy1.rect.setPosition((counter * 40)+40 + roomStartX,(counter2 * 40)+40 + roomStartY);
+                enemyArray.push_back(enemy1);
+            }
+            counter2++;
+        }
+        counter++;
+    }
+
+
+    wall1.sprite.setTextureRect(sf::IntRect(40,0,40,40));
+
+    wall1.destructable = false; ///cant destroyed
+    wall1.rect.setFillColor(sf::Color::White);
+
+
+
+    ///create horizontal wall
+    counter = 0;
+    while(counter < roomSize)
+    {
+        if(counter == horizontalDoorLocationUp || counter == horizontalDoorLocationUp+1 )
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(40 * counter + roomStartX,roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+    ///create horizontal wall
+    counter = 0;
+    while(counter < roomSize)
+    {
+        if(counter == horizontalDoorLocationDown || counter == horizontalDoorLocationDown+1 )
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(40 * counter + roomStartX,40*roomSize + roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+    ///create Vertical wall
+    counter = 0;
+    while(counter < roomSize)
+    {
+        wall1.rect.setPosition(roomStartX,40* counter + roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+    ///create Vertical wall
+    counter = 0;
+    while(counter < roomSize+1)
+    {
+        if(counter == verticalDoorLocationRight || counter == verticalDoorLocationRight+1)
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(40*roomSize + roomStartX,40* counter + roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+
+
+
+
+    ///room 2
+    roomSize = 10;
+    verticalDoorLocationLeft = 3;
+    verticalDoorLocationRight = 3;
+    horizontalDoorLocationUp = 5;
+    horizontalDoorLocationDown = 2;
+    roomStartX = 5*40;
+    roomStartY = 0;
+
+
+
+
+    ///Destructable blocks and enemy in room 2
+    counter = 0;
+    while(counter < roomSize -1)
+    {
+        counter2 = 0;
+        while(counter2 < roomSize -1)
+        {
+            int tempRandom = greaterRandom1(10);
+            if(tempRandom == 1)
+            {
+                wall1.destructable = true; ///can destroyed
+                wall1.rect.setFillColor(sf::Color::Yellow);
+
+                wall1.sprite.setTexture(textureObstacle);
+                wall1.sprite.setTextureRect(sf::IntRect(80,0,40,40));
+
+                wall1.rect.setPosition((counter * 40)+40 + roomStartX,(counter2 * 40)+40 + roomStartY);
+                wallArray.push_back(wall1);
+            }
+            if(tempRandom == 2)
+            {
+                enemy1.rect.setPosition((counter2 * 40)+40 + roomStartX,(counter2 * 40)+40 + roomStartY);
+                enemyArray.push_back(enemy1);
+            }
+            counter2++;
+        }
+        counter++;
+    }
+
+
+
+    wall1.sprite.setTextureRect(sf::IntRect(40,0,40,40));
+
+    wall1.destructable = false; ///cant destroyed
+    wall1.rect.setFillColor(sf::Color::White);
+
+
+
+    ///create horizontal wall up
+    counter = 0;
+    while(counter < roomSize)
+    {
+        if(counter == horizontalDoorLocationUp || counter == horizontalDoorLocationUp+1 )
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(40 * counter + roomStartX,roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+    ///create horizontal wall down
+    counter = 0;
+    while(counter < roomSize)
+    {
+        if(counter == horizontalDoorLocationDown || counter == horizontalDoorLocationDown+1 )
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(40 * counter + roomStartX,40*roomSize + roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+    ///create Vertical wall left
+    counter = 0;
+    while(counter < roomSize)
+    {
+        if(counter == verticalDoorLocationLeft || counter == verticalDoorLocationLeft+1)
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(roomStartX,40* counter + roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+    ///create Vertical wall right
+    counter = 0;
+    while(counter < roomSize+1)
+    {
+        if(counter == verticalDoorLocationRight || counter == verticalDoorLocationRight+1 )
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(40*roomSize + roomStartX,40* counter + roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+
+
+
+
+
+    ///room 3
+    roomSize = 6;
+    verticalDoorLocationLeft = 100;
+    verticalDoorLocationRight = 100;
+    horizontalDoorLocationUp = 2;
+    horizontalDoorLocationDown = 100;
+    roomStartX = 5*40;
+    roomStartY = 10*40;
+
+
+    ///Destructable blocks and enemy in room 3
+    counter = 0;
+    while(counter < roomSize -1)
+    {
+        counter2 = 0;
+        while(counter2 < roomSize -1)
+        {
+            int tempRandom = greaterRandom1(15);
+            if(tempRandom == 1)
+            {
+                wall1.destructable = true; ///can destroyed
+                wall1.rect.setFillColor(sf::Color::Yellow);
+
+                wall1.sprite.setTexture(textureObstacle);
+                wall1.sprite.setTextureRect(sf::IntRect(80,0,40,40));
+
+                wall1.rect.setPosition((counter * 40)+40 + roomStartX,(counter2 * 40)+40 + roomStartY);
+                wallArray.push_back(wall1);
+            }
+            if(tempRandom == 2)
+            {
+                enemy1.rect.setPosition((counter2 * 40)+40 + roomStartX,(counter2 * 40)+40 + roomStartY);
+                enemyArray.push_back(enemy1);
+            }
+            counter2++;
+        }
+        counter++;
+    }
+
+
+    wall1.sprite.setTextureRect(sf::IntRect(40,0,40,40));
+
+    wall1.destructable = false; ///cant destroyed
+    wall1.rect.setFillColor(sf::Color::White);
+
+
+
+    ///create horizontal wall up
+    counter = 0;
+    while(counter < roomSize)
+    {
+        if(counter == horizontalDoorLocationUp || counter == horizontalDoorLocationUp+1 )
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(40 * counter + roomStartX,roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+    ///create horizontal wall down
+    counter = 0;
+    while(counter < roomSize)
+    {
+        if(counter == horizontalDoorLocationDown || counter == horizontalDoorLocationDown+1 )
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(40 * counter + roomStartX,40*roomSize + roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+    ///create Vertical wall left
+    counter = 0;
+    while(counter < roomSize)
+    {
+        if(counter == verticalDoorLocationLeft || counter == verticalDoorLocationLeft+1)
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(roomStartX,40* counter + roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+    ///create Vertical wall right
+    counter = 0;
+    while(counter < roomSize+1)
+    {
+        if(counter == verticalDoorLocationRight || counter == verticalDoorLocationRight+1 )
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(40*roomSize + roomStartX,40* counter + roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+
+
+
+///room 4
+    roomSize = 10;
+    verticalDoorLocationLeft = 100;
+    verticalDoorLocationRight = 100;
+    horizontalDoorLocationUp = 100;
+    horizontalDoorLocationDown = 5;
+    roomStartX = 5*40;
+    roomStartY = -1*10*40;
+
+
+    ///Destructable blocks and enemy in room 4
+    counter = 0;
+    while(counter < roomSize -1)
+    {
+        counter2 = 0;
+        while(counter2 < roomSize -1)
+        {
+            int tempRandom = greaterRandom1(20);
+            if(tempRandom == 1)
+            {
+                wall1.destructable = true; ///can destroyed
+                wall1.rect.setFillColor(sf::Color::Yellow);
+
+                wall1.sprite.setTexture(textureObstacle);
+                wall1.sprite.setTextureRect(sf::IntRect(80,0,40,40));
+
+                wall1.rect.setPosition((counter * 40)+40 + roomStartX,(counter2 * 40)+40 + roomStartY);
+                wallArray.push_back(wall1);
+            }
+            if(tempRandom == 2)
+            {
+                enemy1.rect.setPosition((counter2 * 40)+40 + roomStartX,(counter2 * 40)+40 + roomStartY);
+                enemyArray.push_back(enemy1);
+            }
+            counter2++;
+        }
+        counter++;
+    }
+
+
+    wall1.destructable = false; ///cant destroyed
+    wall1.rect.setFillColor(sf::Color::White);
+
+
+    wall1.sprite.setTextureRect(sf::IntRect(40,0,40,40));
+
+    ///create horizontal wall up
+    counter = 0;
+    while(counter < roomSize)
+    {
+        if(counter == horizontalDoorLocationUp || counter == horizontalDoorLocationUp+1 )
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(40 * counter + roomStartX,roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+    ///create horizontal wall down
+    counter = 0;
+    while(counter < roomSize)
+    {
+        if(counter == horizontalDoorLocationDown || counter == horizontalDoorLocationDown+1 )
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(40 * counter + roomStartX,40*roomSize + roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+    ///create Vertical wall left
+    counter = 0;
+    while(counter < roomSize)
+    {
+        if(counter == verticalDoorLocationLeft || counter == verticalDoorLocationLeft+1)
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(roomStartX,40* counter + roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+    ///create Vertical wall right
+    counter = 0;
+    while(counter < roomSize+1)
+    {
+        if(counter == verticalDoorLocationRight || counter == verticalDoorLocationRight+1 )
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(40*roomSize + roomStartX,40* counter + roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+
+
+
+
+
+
+    ///room 5 item shop
+    roomSize = 10;
+    verticalDoorLocationLeft = 3;
+    verticalDoorLocationRight = 100;
+    horizontalDoorLocationUp = 100;
+    horizontalDoorLocationDown = 100;
+    roomStartX = 15*40;
+    roomStartY = 0;
+
+    ///Destructable blocks and enemy in room 5
+    /* counter = 0;
+     while(counter < roomSize -1)
+     {
+         counter2 = 0;
+         while(counter2 < roomSize -1)
+         {
+             int tempRandom = greaterRandom1(10);
+             if(tempRandom == 1)
+             {
+                 wall1.destructable = true; ///can destroyed
+                 wall1.rect.setFillColor(sf::Color::Yellow);
+                 wall1.rect.setPosition((counter * 40)+40 + roomStartX,(counter2 * 40)+40 + roomStartY);
+                 wallArray.push_back(wall1);
+             }
+             if(tempRandom == 2)
+             {
+                 enemy1.rect.setPosition((counter2 * 40)+40 + roomStartX,(counter2 * 40)+40 + roomStartY);
+                 enemyArray.push_back(enemy1);
+             }
+             counter2++;
+         }
+         counter++;
+     }*/
+
+    wall1.sprite.setTextureRect(sf::IntRect(40,0,40,40));
+
+    ///drop powerup
+    pickup1.cost = 15;
+    pickup1.text.setString("Cost "+ to_string(pickup1.cost));
+    pickup1.isShop = true;
+    pickup1.isPowerUp = true;
+    pickup1.isCoin = false;
+    pickup1.isNovaPowerup = false;
+    pickup1.isHpSheild = false;
+    pickup1.sprite.setTexture(texturePowerup);
+    pickup1.sprite.setTextureRect(sf::IntRect(0,0,40,40));
+    pickup1.rect.setPosition(15*40 + (2*40), 4*40 );
+    pickupArray.push_back(pickup1);
+    pickup1.isPowerUp = false;
+
+    ///drop Nova powerup
+    pickup1.cost = 30;
+    pickup1.text.setString("Cost "+ to_string(pickup1.cost));
+    pickup1.isShop = true;
+    pickup1.isPowerUp = false;
+    pickup1.isCoin = false;
+    pickup1.isNovaPowerup = true;
+    pickup1.isHpSheild = false;
+    pickup1.sprite.setTexture(texturePowerup);
+    pickup1.sprite.setTextureRect(sf::IntRect(40,0,40,40));
+    pickup1.rect.setPosition(15*40 + (4*45), 4*40);
+    pickupArray.push_back(pickup1);
+    pickup1.isNovaPowerup = false;
+
+
+    ///drop HP sheild powerup
+    pickup1.cost = 10;
+    pickup1.text.setString("Cost "+ to_string(pickup1.cost));
+    pickup1.isShop = true;
+    pickup1.isPowerUp = false;
+    pickup1.isCoin = false;
+    pickup1.isNovaPowerup = false;
+    pickup1.isHpSheild = true;
+    pickup1.sprite.setTexture(texturePowerup);
+    pickup1.sprite.setTextureRect(sf::IntRect(80,0,40,40));
+    pickup1.rect.setPosition(15*40 + (7*40), 4*40);
+    pickupArray.push_back(pickup1);
+    pickup1.isHpSheild = false;
+
+
+    ///making shop false
+    pickup1.isShop = false;
+
+
+    wall1.destructable = false; ///cant destroyed
+    wall1.rect.setFillColor(sf::Color::White);
+
+
+
+    ///create horizontal wall up
+    counter = 0;
+    while(counter < roomSize)
+    {
+        if(counter == horizontalDoorLocationUp || counter == horizontalDoorLocationUp+1 )
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(40 * counter + roomStartX,roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+    ///create horizontal wall down
+    counter = 0;
+    while(counter < roomSize)
+    {
+        if(counter == horizontalDoorLocationDown || counter == horizontalDoorLocationDown+1 )
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(40 * counter + roomStartX,40*roomSize + roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+    ///create Vertical wall left
+    counter = 0;
+    while(counter < roomSize)
+    {
+        if(counter == verticalDoorLocationLeft || counter == verticalDoorLocationLeft+1)
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(roomStartX,40* counter + roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+    ///create Vertical wall right
+    counter = 0;
+    while(counter < roomSize+1)
+    {
+        if(counter == verticalDoorLocationRight || counter == verticalDoorLocationRight+1 )
+        {
+            counter++;
+            continue;
+        }
+        wall1.rect.setPosition(40*roomSize + roomStartX,40* counter + roomStartY);
+        wallArray.push_back(wall1);
+        counter++;
+    }
+
+
+
+
+
+
+
+    ///start game loop//////////////////////////////////////////////////////////////////////////////////////
+    while (window.isOpen())
+    {
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+                window.close();
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+            {
+                window.close();
+            }
+        }
+
+        ///Clearing Windows
+        window.clear(sf::Color::Black);
+
+        ///Clock
+        sf::Time elapsed1 = clock.getElapsedTime();
+        sf::Time elapsed2 = clock2.getElapsedTime();
+        //sf::Time elapsed3 = clock3.getElapsedTime();
+
+
+
+        ///Enemy collied with walls
+        counter=0;
+        for(iter4 = enemyArray.begin(); iter4 != enemyArray.end(); iter4++)
+        {
+            counter2=0;
+            for(iter15 = wallArray.begin(); iter15 != wallArray.end(); iter15++)
+            {
+                if(enemyArray[counter].rect.getGlobalBounds().intersects(wallArray[counter2].rect.getGlobalBounds()))
+                {
+                    ///hit wall
+                    if(enemyArray[counter].direction == 1) //up
+                    {
+                        enemyArray[counter].canMoveUp = false;
+                        enemyArray[counter].rect.move(0,1);
+                    }
+                    else if(enemyArray[counter].direction == 2) //down
+                    {
+                        enemyArray[counter].canMoveDown = false;
+                        enemyArray[counter].rect.move(0,-1);
+                    }
+                    else if(enemyArray[counter].direction == 3) //left
+                    {
+                        enemyArray[counter].canMoveLeft = false;
+                        enemyArray[counter].rect.move(1,0);
+                    }
+                    else if(enemyArray[counter].direction == 4) // Right
+                    {
+                        enemyArray[counter].canMoveRight = false;
+                        enemyArray[counter].rect.move(-1,0);
+                    }
+                    else
+                    {
+                        ///Do nothing
+                    }
+                }
+                counter2++;
+            }
+            counter++;
+        }
+
+
+
+        ///player collied with wall////////////////////////////////////////////////////////////
+        counter=0;
+        for(iter15 = wallArray.begin(); iter15 != wallArray.end(); iter15++)
+        {
+            if(Player1.rect.getGlobalBounds().intersects(wallArray[counter].rect.getGlobalBounds()))
+            {
+                ///hit wall
+                if(Player1.direction == 1) //up
+                {
+                    Player1.canMoveUp = false;
+                    Player1.rect.move(0,1);
+                }
+                else if(Player1.direction == 2) //down
+                {
+                    Player1.canMoveDown = false;
+                    Player1.rect.move(0,-1);
+                }
+                else if(Player1.direction == 3) //left
+                {
+                    Player1.canMoveLeft = false;
+                    Player1.rect.move(1,0);
+                }
+                else if(Player1.direction == 4) // Right
+                {
+                    Player1.canMoveRight = false;
+                    Player1.rect.move(-1,0);
+                }
+                else
+                {
+                    ///Do nothing
+                }
+            }
+            counter++;
+        }
+
+
+
+        ///player collied with pickup item///////////////////////////////////////////////////////////////////////////////////
+        counter=0;
+        for(iter11 = pickupArray.begin(); iter11 != pickupArray.end(); iter11++)
+        {
+            if(Player1.rect.getGlobalBounds().intersects(pickupArray[counter].rect.getGlobalBounds()))
+            {
+                if(pickupArray[counter].isShop == true)
+                {
+                    if(pickupArray[counter].isPowerUp == true && Player1.points >= pickupArray[counter].cost)
+                    {
+                        Player1.points -= pickupArray[counter].cost;
+                        Player1.powerUp = true;
+                        Player1.novaAttack = false;
+                        pickupArray[counter].destroy = true;
+                    }
+                    if(pickupArray[counter].isNovaPowerup == true && Player1.points >= pickupArray[counter].cost)
+                    {
+                        Player1.points -= pickupArray[counter].cost;
+                        Player1.powerUp = false;
+                        Player1.novaAttack = true;
+                        pickupArray[counter].destroy = true;
+                    }
+                    if(pickupArray[counter].isHpSheild == true && Player1.points >= pickupArray[counter].cost)
+                    {
+                        Player1.points -= pickupArray[counter].cost;
+                        Player1.hp += 10;
+                        Player1.maxHp += 10;
+                        pickupArray[counter].destroy = true;
+                    }
+                }
+                else if(pickupArray[counter].isShop == false)
+                {
+                    if(pickupArray[counter].isCoin == true)
+                    {
+                        soundCoin.play();
+                        Player1.points += pickupArray[counter].coinValue;
+                    }
+                    if(pickupArray[counter].isPowerUp == true)
+                    {
+
+                        Player1.powerUp = true;
+                        Player1.novaAttack = false;
+                    }
+                    if(pickupArray[counter].isNovaPowerup == true)
+                    {
+                        Player1.powerUp = false;
+                        Player1.novaAttack = true;
+                    }
+                    pickupArray[counter].destroy = true;
+                }
+            }
+            counter++;
+        }
+
+
+
+        ///Enemy collied with player///////////////////////////////////////////////////////////////////////////////////////
+        if(elapsed2.asSeconds() >= 0.5)
+        {
+            clock2 .restart();
+            ///Enemy collide with player and player takes damage
+            counter=0;
+            for(iter4 = enemyArray.begin(); iter4 != enemyArray.end(); iter4++)
+            {
+                if(Player1.rect.getGlobalBounds().intersects(enemyArray[counter].rect.getGlobalBounds()))
+                {
+                    soundPlayerDamaged.play();
+                    textDisplay1.text.setString(to_string(enemyArray[counter].attackDamage));
+                    textDisplay1.text.setPosition(Player1.rect.getPosition().x + Player1.rect.getSize().x/2,
+                                                  Player1.rect.getPosition().y - Player1.rect.getSize().y/2);
+                    textArray.push_back(textDisplay1);
+                    Player1.hp -= enemyArray[counter].attackDamage;
+                    Player1.powerUp = false;
+                    Player1.novaAttack = false;
+                }
+                counter++;
+            }
+        }
+
+
+
+        ///Projectile collied with walls/////////////////////////////////////////////////////////////////////
+        counter=0;
+        for(iter=projectileArray.begin(); iter != projectileArray.end(); iter++)
+        {
+            counter2=0;
+            for(iter15 = wallArray.begin(); iter15 != wallArray.end(); iter15++)
+            {
+                if(projectileArray[counter].rect.getGlobalBounds().intersects(wallArray[counter2].rect.getGlobalBounds()))
+                {
+                    if(wallArray[counter2].destructable == true)
+                    {
+                        wallArray[counter2].hp -= Player1.attackDamage;
+
+                        if(wallArray[counter2].hp <=0)
+                        {
+                            wallArray[counter2].destroy = true;
+                        }
+                    }
+                    projectileArray[counter].destroy = true;
+                }
+                counter2++;
+            }
+            counter++;
+        }
+
+
+
+
+        ///projectile collide with enemies///////////////////////////////////////////////////////////////
+        counter=0;
+        for(iter=projectileArray.begin(); iter != projectileArray.end(); iter++)
+        {
+            counter2 = 0;
+            for(iter4 = enemyArray.begin(); iter4 != enemyArray.end(); iter4++)
+            {
+                if( projectileArray[counter].rect.getGlobalBounds().intersects(enemyArray[counter2].rect.getGlobalBounds()) )
+                {
+                    soundCollision.play();
+                    projectileArray[counter].destroy = true;
+
+                    ///Text display
+                    textDisplay1.text.setString(to_string(projectileArray[counter].attackDamage));
+                    textDisplay1.text.setPosition(enemyArray[counter2].rect.getPosition().x + enemyArray[counter2].rect.getSize().x/2,
+                                                  enemyArray[counter2].rect.getPosition().y - enemyArray[counter2].rect.getSize().y/2);
+                    textArray.push_back(textDisplay1);
+
+                    enemyArray[counter2].hp -= projectileArray[counter].attackDamage;
+                    if(enemyArray[counter2].hp <=0)
+                    {
+                        enemyArray[counter2].alive = false;
+                    }
+                }
+                counter2++;
+            }
+            counter++;
+        }
+
+
+        /// delete dead enemy//////////////////////////////////////////////////////////////////////////
+        counter = 0;
+        for(auto iter4 = enemyArray.begin(); iter4 != enemyArray.end(); iter4++)
+        {
+            if(enemyArray[counter].alive == false)
+            {
+                ///drop coin
+                if(greaterRandom1(4)==1)
+                {
+                    pickup1.isCoin = true;
+                    pickup1.isPowerUp = false;
+                    pickup1.isNovaPowerup = false;
+                    pickup1.sprite.setTexture(textureCoin);
+                    pickup1.rect.setPosition(enemyArray[counter].rect.getPosition());
+                    pickupArray.push_back(pickup1);
+                }
+                ///drop powerup
+                if(greaterRandom1(6)==1)
+                {
+                    pickup1.isPowerUp = true;
+                    pickup1.isCoin = false;
+                    pickup1.isNovaPowerup = false;
+                    pickup1.sprite.setTexture(texturePowerup);
+                    pickup1.sprite.setTextureRect(sf::IntRect(0,0,40,40));
+                    pickup1.rect.setPosition(enemyArray[counter].rect.getPosition());
+                    pickupArray.push_back(pickup1);
+                }
+                ///drop Nova powerup
+                if(greaterRandom1(8)==1)
+                {
+                    pickup1.isPowerUp = false;
+                    pickup1.isCoin = false;
+                    pickup1.isNovaPowerup = true;
+                    pickup1.sprite.setTexture(texturePowerup);
+                    pickup1.sprite.setTextureRect(sf::IntRect(40,0,40,40));
+                    pickup1.rect.setPosition(enemyArray[counter].rect.getPosition());
+                    pickupArray.push_back(pickup1);
+                }
+                ///Creat enemy blood
+                blood1.rect.setPosition(enemyArray[counter].rect.getPosition());
+                bloodArray.push_back(blood1);
+
+
+                enemyArray.erase(iter4);
+                break;
+            }
+            counter++;
+        }
+
+        ///delete projectile///////////////////////////////////////////////////////////////
+        counter=0;
+        for(iter=projectileArray.begin(); iter != projectileArray.end(); iter++)
+        {
+            if(projectileArray[counter].destroy == true)
+            {
+                projectileArray.erase(iter);
+                break;
+            }
+            counter++;
+        }
+
+        ///Delete text display/////////////////////////////////////////////////////////////
+        counter = 0;
+        for(iter8 = textArray.begin(); iter8 != textArray.end(); iter8++)
+        {
+            if(textArray[counter].destroy==true)
+            {
+                textArray.erase(iter8);
+                break;
+            }
+            counter++;
+        }
+
+
+        ///delete pickup items///////////////////////////////////////////////////////////////
+        counter=0;
+        for(iter11 = pickupArray.begin(); iter11 != pickupArray.end(); iter11++)
+        {
+            if(pickupArray[counter].destroy == true)
+            {
+                cout<<"coin should be delete\n";
+                pickupArray.erase(iter11);
+                break;
+            }
+            counter++;
+        }
+
+
+
+        ///delete wall///////////////////////////////////////////////////////////////
+        counter = 0;
+        for(iter15 = wallArray.begin(); iter15 != wallArray.end(); iter15++)
+        {
+            if(wallArray[counter].destroy == true)
+            {
+                ///drop coin
+                if(greaterRandom1(4)==1)
+                {
+                    pickup1.isCoin = true;
+                    pickup1.isNovaPowerup = false;
+                    pickup1.isPowerUp = false;
+                    pickup1.sprite.setTexture(textureCoin);
+                    pickup1.rect.setPosition(wallArray[counter].rect.getPosition());
+                    pickupArray.push_back(pickup1);
+                }
+                ///drop powerup
+                if(greaterRandom1(6)==1)
+                {
+                    pickup1.isNovaPowerup = false;
+                    pickup1.isPowerUp = true;
+                    pickup1.isCoin = false;
+                    pickup1.sprite.setTexture(texturePowerup);
+                    pickup1.rect.setPosition(wallArray[counter].rect.getPosition());
+                    pickupArray.push_back(pickup1);
+                }
+                ///drop Nova powerup
+                if(greaterRandom1(8)==1)
+                {
+                    pickup1.isPowerUp = false;
+                    pickup1.isCoin = false;
+                    pickup1.isNovaPowerup = true;
+                    pickup1.sprite.setTexture(texturePowerup);
+                    pickup1.rect.setPosition(enemyArray[counter].rect.getPosition());
+                    pickupArray.push_back(pickup1);
+                }
+
+                wallArray.erase(iter15);
+                break;
+            }
+            counter++;
+        }
+
+
+        ///Delete  blood////////////////////////////////////////////////////////
+        counter=0;
+        for(iter20 = bloodArray.begin(); iter20 != bloodArray.end(); iter20++)
+        {
+            if(bloodArray[counter].alive == false)
+            {
+                bloodArray.erase(iter20);
+                break;
+            }
+            counter++;
+        }
+
+
+
+
+
+        ///fun spawning enemy pressing y
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Y))
+        {
+            enemy1.rect.setPosition(greaterRandom1(window.getSize().x),greaterRandom1(window.getSize().y));
+            enemyArray.push_back(enemy1);
+        }
+
+
+
+
+
+
+        ///Draw wall////////////////////////////////////////////////////////////////
+        counter=0;
+        for(iter15 = wallArray.begin(); iter15 != wallArray.end(); iter15++)
+        {
+            wallArray[counter].update(); ///update wall
+            window.draw(wallArray[counter].sprite);
+            //window.draw(wallArray[counter].sprite);
+            counter++;
+        }
+
+
+        ///Draw blood////////////////////////////////////////////////////////
+        counter=0;
+        for(iter20 = bloodArray.begin(); iter20 != bloodArray.end(); iter20++)
+        {
+            bloodArray[counter].update();
+            window.draw(bloodArray[counter].sprite);
+            counter++;
+        }
+
+
+
+        ///Draw pickup/////////////////////////////////////////////////////////////
+        counter=0;
+        for(iter11 = pickupArray.begin(); iter11 != pickupArray.end(); iter11++)
+        {
+            if(pickupArray[counter].isShop == true)
+            {
+                window.draw(pickupArray[counter].text);
+            }
+            pickupArray[counter].update(); ///update pickup
+            //window.draw(pickupArray[counter].rect);
+            window.draw(pickupArray[counter].sprite);
+            counter++;
+        }
+
+
+        ///Firing projectile(space bar)/////////////////////////////////////////////////////
+        if(elapsed1.asSeconds()>= 0.1)
+        {
+            clock.restart();
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+            {
+                soundShot.play();
+                if(Player1.powerUp == true) //powerup aattack
+                {
+                    if(Player1.direction == 1) //up
+                    {
+                        projectile1.rect.setPosition(Player1.rect.getPosition().x + Player1.rect.getSize().x/2 - projectile1.rect.getSize().x/2
+                                                     ,Player1.rect.getPosition().y + Player1.rect.getSize().y/2 - projectile1.rect.getSize().y/2 - 15);
+                        projectile1.direction = Player1.direction;
+                        projectileArray.push_back(projectile1);
+
+                        projectile1.rect.setPosition(Player1.rect.getPosition().x + Player1.rect.getSize().x/2 - projectile1.rect.getSize().x/2 - 15
+                                                     ,Player1.rect.getPosition().y + Player1.rect.getSize().y/2 - projectile1.rect.getSize().y/2 + 0);
+                        projectile1.direction = Player1.direction;
+                        projectileArray.push_back(projectile1);
+
+                         projectile1.rect.setPosition(Player1.rect.getPosition().x + Player1.rect.getSize().x/2 - projectile1.rect.getSize().x/2 + 15
+                                                     ,Player1.rect.getPosition().y + Player1.rect.getSize().y/2 - projectile1.rect.getSize().y/2 + 0);
+                        projectile1.direction = Player1.direction;
+                        projectileArray.push_back(projectile1);
+
+                    }
+                    if(Player1.direction == 2) //down
+                    {
+                        projectile1.rect.setPosition(Player1.rect.getPosition().x + Player1.rect.getSize().x/2 - projectile1.rect.getSize().x/2
+                                                     ,Player1.rect.getPosition().y + Player1.rect.getSize().y/2 - projectile1.rect.getSize().y/2 + 15);
+                        projectile1.direction = Player1.direction;
+                        projectileArray.push_back(projectile1);
+
+                        projectile1.rect.setPosition(Player1.rect.getPosition().x + Player1.rect.getSize().x/2 - projectile1.rect.getSize().x/2 - 15
+                                                     ,Player1.rect.getPosition().y + Player1.rect.getSize().y/2 - projectile1.rect.getSize().y/2 + 0);
+                        projectile1.direction = Player1.direction;
+                        projectileArray.push_back(projectile1);
+
+                         projectile1.rect.setPosition(Player1.rect.getPosition().x + Player1.rect.getSize().x/2 - projectile1.rect.getSize().x/2 + 15
+                                                     ,Player1.rect.getPosition().y + Player1.rect.getSize().y/2 - projectile1.rect.getSize().y/2 + 0);
+                        projectile1.direction = Player1.direction;
+                        projectileArray.push_back(projectile1);
+
+                    }
+                    if(Player1.direction == 3) //left
+                    {
+                        projectile1.rect.setPosition(Player1.rect.getPosition().x + Player1.rect.getSize().x/2 - projectile1.rect.getSize().x/2 - 15
+                                                     ,Player1.rect.getPosition().y + Player1.rect.getSize().y/2 - projectile1.rect.getSize().y/2 + 0);
+                        projectile1.direction = Player1.direction;
+                        projectileArray.push_back(projectile1);
+
+                        projectile1.rect.setPosition(Player1.rect.getPosition().x + Player1.rect.getSize().x/2 - projectile1.rect.getSize().x/2
+                                                     ,Player1.rect.getPosition().y + Player1.rect.getSize().y/2 - projectile1.rect.getSize().y/2 + 15);
+                        projectile1.direction = Player1.direction;
+                        projectileArray.push_back(projectile1);
+
+                         projectile1.rect.setPosition(Player1.rect.getPosition().x + Player1.rect.getSize().x/2 - projectile1.rect.getSize().x/2
+                                                     ,Player1.rect.getPosition().y + Player1.rect.getSize().y/2 - projectile1.rect.getSize().y/2 -15);
+                        projectile1.direction = Player1.direction;
+                        projectileArray.push_back(projectile1);
+
+                    }
+                    if(Player1.direction == 4) //right
+                    {
+                        projectile1.rect.setPosition(Player1.rect.getPosition().x + Player1.rect.getSize().x/2 - projectile1.rect.getSize().x/2 +15
+                                                     ,Player1.rect.getPosition().y + Player1.rect.getSize().y/2 - projectile1.rect.getSize().y/2 );
+                        projectile1.direction = Player1.direction;
+                        projectileArray.push_back(projectile1);
+
+                        projectile1.rect.setPosition(Player1.rect.getPosition().x + Player1.rect.getSize().x/2 - projectile1.rect.getSize().x/2
+                                                     ,Player1.rect.getPosition().y + Player1.rect.getSize().y/2 - projectile1.rect.getSize().y/2 + -15);
+                        projectile1.direction = Player1.direction;
+                        projectileArray.push_back(projectile1);
+
+                         projectile1.rect.setPosition(Player1.rect.getPosition().x + Player1.rect.getSize().x/2 - projectile1.rect.getSize().x/2
+                                                     ,Player1.rect.getPosition().y + Player1.rect.getSize().y/2 - projectile1.rect.getSize().y/2 + 15);
+                        projectile1.direction = Player1.direction;
+                        projectileArray.push_back(projectile1);
+
+                    }
+
+                }
+                else if(Player1.novaAttack == true)
+                {
+                    projectile1.rect.setPosition(Player1.rect.getPosition().x + Player1.rect.getSize().x/2 - projectile1.rect.getSize().x/2
+                                                 ,Player1.rect.getPosition().y + Player1.rect.getSize().y/2 - projectile1.rect.getSize().y/2);
+                    projectile1.direction = 1;
+                    projectileArray.push_back(projectile1);
+
+                    projectile1.rect.setPosition(Player1.rect.getPosition().x + Player1.rect.getSize().x/2 - projectile1.rect.getSize().x/2
+                                                 ,Player1.rect.getPosition().y + Player1.rect.getSize().y/2 - projectile1.rect.getSize().y/2);
+                    projectile1.direction = 2;
+                    projectileArray.push_back(projectile1);
+
+                    projectile1.rect.setPosition(Player1.rect.getPosition().x + Player1.rect.getSize().x/2 - projectile1.rect.getSize().x/2
+                                                 ,Player1.rect.getPosition().y + Player1.rect.getSize().y/2 - projectile1.rect.getSize().y/2);
+                    projectile1.direction = 3;
+                    projectileArray.push_back(projectile1);
+
+                    projectile1.rect.setPosition(Player1.rect.getPosition().x + Player1.rect.getSize().x/2 - projectile1.rect.getSize().x/2
+                                                 ,Player1.rect.getPosition().y + Player1.rect.getSize().y/2 - projectile1.rect.getSize().y/2);
+                    projectile1.direction = 4;
+                    projectileArray.push_back(projectile1);
+
+
+                }
+                else // normal attack
+                {
+                    projectile1.rect.setPosition(Player1.rect.getPosition().x + Player1.rect.getSize().x/2 - projectile1.rect.getSize().x/2
+                                                 ,Player1.rect.getPosition().y + Player1.rect.getSize().y/2 - projectile1.rect.getSize().y/2);
+                    projectile1.direction = Player1.direction;
+                    projectileArray.push_back(projectile1);
+                }
+
+            }
+        }
+
+        ///Draw projectile//////////////////////////////////////////////////////////////////
+        counter=0;
+        for(iter=projectileArray.begin(); iter != projectileArray.end(); iter++)
+        {
+            projectileArray[counter].update(); ///update projectile
+            //window.draw(projectileArray[counter].rect);
+            window.draw(projectileArray[counter].sprite);
+            counter++;
+        }
+
+
+        ///Draw enemies//////////////////////////////////////////////////////////////
+        counter=0;
+        for(iter4 = enemyArray.begin(); iter4 != enemyArray.end(); iter4++)
+        {
+
+
+            enemyArray[counter].update(); ///update projectile
+            enemyArray[counter].updateMovement();
+            ///window.draw(enemyArray[counter].rect);
+            window.draw(enemyArray[counter].sprite);
+            counter++;
+        }
+        ///draw enemy text hp
+        counter=0;
+        for(iter4 = enemyArray.begin(); iter4 != enemyArray.end(); iter4++)
+        {
+            enemyArray[counter].text.setString("HP "+to_string(enemyArray[counter].hp)+ "/"+to_string(enemyArray[counter].maxHp));
+            window.draw(enemyArray[counter].text);
+            counter++;
+        }
+
+
+        ///update player/////////////////////////////////////////////////////////////////////////
+        Player1.update();
+        Player1.updateMovement();
+
+
+        ///Player View
+        window.setView(view1);
+        view1.setCenter(Player1.rect.getPosition());
+
+
+
+        ///Draw player
+        //window.draw(Player1.rect);
+        window.draw(Player1.sprite);
+
+        ///Draw Text when projectile hit enemy
+        counter = 0;
+        for(iter8 = textArray.begin(); iter8 != textArray.end(); iter8++)
+        {
+            textArray[counter].update();
+            window.draw( textArray[counter].text);
+            counter++;
+        }
+
+
+        ///Display Player HP////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        textHp.setPosition(Player1.rect.getPosition().x - window.getSize().x/2,Player1.rect.getPosition().y - window.getSize().y/2);
+        textHp.setString("HP: " + to_string(Player1.hp)+ "/" + to_string(Player1.maxHp));
+        window.draw(textHp);
+
+        ///Display Points
+        text.setPosition(Player1.rect.getPosition().x - window.getSize().x/2,Player1.rect.getPosition().y - window.getSize().y/2 + 25);
+        text.setString("Points: " + to_string(Player1.points));
+        window.draw(text);
+
+        ///Display
+        window.display();
+    }
+
+    return 0;
+}

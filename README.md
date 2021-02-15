@@ -1,6 +1,8 @@
 # SFML-UNTITLED-TANK-GAME-.exe
 ![Build](https://img.shields.io/badge/build-passing-lightgreen.svg) ![License](https://img.shields.io/badge/license-MIT-orange.svg)
 
+The project done by Mahmudur Rahman, Tamzid Shamsher and me Rafi Hassan Chowdhury for semester 1-2.
+
 At first clone the project 
 
 To play this game just click on the 
